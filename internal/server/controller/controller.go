@@ -2,7 +2,7 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
+	"html/template"
 	"net/http"
 
 	"guthub.com/serge64/joffer/internal/storage"
@@ -10,7 +10,10 @@ import (
 
 type Controller struct {
 	middleware *middleware
+	pages      *pages
+	auth       *auth
 	store      storage.Store
+	session    storage.Session
 }
 
 type errorResponse struct {
@@ -20,24 +23,10 @@ type errorResponse struct {
 	Path    string `json:"path"`
 }
 
-func New(store storage.Store) *Controller {
+func New(store storage.Store, session storage.Session) *Controller {
 	return &Controller{
-		store: store,
-	}
-}
-
-func (c *Controller) NotFoundHandler() http.HandlerFunc {
-	return c.errorHandler(http.StatusNotFound)
-}
-
-func (c *Controller) MethodNotAllowedHandler() http.HandlerFunc {
-	return c.errorHandler(http.StatusMethodNotAllowed)
-}
-
-func (c *Controller) errorHandler(code int) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		c.error(w, r, code, fmt.Errorf("-"))
+		store:   store,
+		session: session,
 	}
 }
 
@@ -48,6 +37,24 @@ func (c *Controller) Middleware() *middleware {
 		}
 	}
 	return c.middleware
+}
+
+func (c *Controller) Pages() *pages {
+	if c.pages == nil {
+		c.pages = &pages{
+			template: template.Must(template.ParseGlob("templates/html/*html")),
+		}
+	}
+	return c.pages
+}
+
+func (c *Controller) Auth() *auth {
+	if c.auth == nil {
+		c.auth = &auth{
+			controller: c,
+		}
+	}
+	return c.auth
 }
 
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, code int, err error) {

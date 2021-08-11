@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,6 +11,37 @@ import (
 
 type middleware struct {
 	controller *Controller
+}
+
+type ctxKey int8
+
+var (
+	sessionName        = "session"
+	ctxKeyUser  ctxKey = 1
+)
+
+func (m *middleware) AuthenticateHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := m.controller.session.Get(r, sessionName)
+		if err != nil {
+			m.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		id, ok := session.Values["user_id"]
+		if !ok {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		u, err := m.controller.store.User().Find(id.(int))
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, u)))
+	})
 }
 
 func (m *middleware) LoggingHandler(next http.Handler) http.Handler {
