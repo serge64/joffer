@@ -36,7 +36,6 @@ func (h *handler) configureRouting() {
 	h.router.MethodNotAllowedHandler = h.controller.MethodNotAllowedHandler()
 
 	h.router.Use(
-		h.controller.Middleware().ContentTypeHandler,
 		h.controller.Middleware().LoggingHandler,
 	)
 }
