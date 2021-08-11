@@ -4,12 +4,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"guthub.com/serge64/joffer/internal/storage"
 
 	_ "github.com/lib/pq"
 )
 
 type Store struct {
-	db *sqlx.DB
+	db             *sqlx.DB
+	userRepository *UserRepository
 }
 
 func New(databaseURL string) (*Store, error) {
@@ -23,6 +25,15 @@ func New(databaseURL string) (*Store, error) {
 	}
 
 	return s, nil
+}
+
+func (s *Store) User() storage.UserRepository {
+	if s.userRepository == nil {
+		s.userRepository = &UserRepository{
+			store: s,
+		}
+	}
+	return s.userRepository
 }
 
 func createCient(databaseURL string) (*sqlx.DB, error) {
