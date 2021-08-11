@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"guthub.com/serge64/joffer/internal/config"
+	sessionstorage "guthub.com/serge64/joffer/internal/storage/session"
 	"guthub.com/serge64/joffer/internal/storage/storagepg"
 
 	"github.com/sirupsen/logrus"
@@ -22,7 +23,14 @@ func Start(c *config.Config) error {
 
 	defer store.Close()
 
-	handler := newHandler(store)
+	session, err := sessionstorage.New(c)
+	if err != nil {
+		return err
+	}
+
+	defer session.Close()
+
+	handler := newHandler(store, session.Redis)
 	srv := &http.Server{
 		Addr:         c.HostAddr,
 		WriteTimeout: time.Second * 15,

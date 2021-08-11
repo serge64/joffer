@@ -11,12 +11,14 @@ import (
 
 type handler struct {
 	router     *mux.Router
+	session    storage.Session
 	controller *controller.Controller
 }
 
-func newHandler(store storage.Store) *handler {
+func newHandler(store storage.Store, session storage.Session) *handler {
 	h := &handler{
 		router:     mux.NewRouter(),
+		session:    session,
 		controller: controller.New(store),
 	}
 
