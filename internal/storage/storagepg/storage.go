@@ -1,6 +1,9 @@
 package storagepg
 
 import (
+	"time"
+
+	"github.com/go-co-op/gocron"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -10,10 +13,12 @@ import (
 )
 
 type Store struct {
-	db               *sqlx.DB
-	userRepository   *UserRepository
-	letterRepository *LetterRepository
-	groupRepository  *GroupRepository
+	db                *sqlx.DB
+	userRepository    *UserRepository
+	letterRepository  *LetterRepository
+	groupRepository   *GroupRepository
+	vacancyRepository *VacancyRepository
+	taskRepository    *TaskRepository
 }
 
 func New(databaseURL string) (*Store, error) {
@@ -54,6 +59,29 @@ func (s *Store) Group() storage.GroupRepository {
 		}
 	}
 	return s.groupRepository
+}
+
+func (s *Store) Vacancy() storage.VacancyRepository {
+	if s.vacancyRepository == nil {
+		s.vacancyRepository = &VacancyRepository{
+			store: s,
+		}
+	}
+	return s.vacancyRepository
+}
+
+func (s *Store) Task() storage.TaskRepository {
+	if s.taskRepository == nil {
+		s.taskRepository = &TaskRepository{
+			store: s,
+			cron:  gocron.NewScheduler(time.UTC),
+			tasks: make(map[int]*gocron.Job),
+		}
+
+		s.taskRepository.cron.SetMaxConcurrentJobs(1, 1)
+		s.taskRepository.cron.StartAsync()
+	}
+	return s.taskRepository
 }
 
 func createCient(databaseURL string) (*sqlx.DB, error) {

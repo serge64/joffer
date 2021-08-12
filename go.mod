@@ -6,6 +6,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
+	github.com/go-co-op/gocron v1.6.2 // indirect
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0
