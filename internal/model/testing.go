@@ -8,3 +8,11 @@ func TestUser(t *testing.T) *User {
 		Password: "password",
 	}
 }
+
+func TestLetter(t *testing.T) *Letter {
+	return &Letter{
+		UserID: 1,
+		Name:   "Письмо 1",
+		Body:   "Тело письма",
+	}
+}

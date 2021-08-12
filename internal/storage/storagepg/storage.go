@@ -10,8 +10,10 @@ import (
 )
 
 type Store struct {
-	db             *sqlx.DB
-	userRepository *UserRepository
+	db               *sqlx.DB
+	userRepository   *UserRepository
+	letterRepository *LetterRepository
+	groupRepository  *GroupRepository
 }
 
 func New(databaseURL string) (*Store, error) {
@@ -34,6 +36,24 @@ func (s *Store) User() storage.UserRepository {
 		}
 	}
 	return s.userRepository
+}
+
+func (s *Store) Letter() storage.LetterRepository {
+	if s.letterRepository == nil {
+		s.letterRepository = &LetterRepository{
+			store: s,
+		}
+	}
+	return s.letterRepository
+}
+
+func (s *Store) Group() storage.GroupRepository {
+	if s.groupRepository == nil {
+		s.groupRepository = &GroupRepository{
+			store: s,
+		}
+	}
+	return s.groupRepository
 }
 
 func createCient(databaseURL string) (*sqlx.DB, error) {
