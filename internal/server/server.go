@@ -30,7 +30,7 @@ func Start(c *config.Config) error {
 
 	defer session.Close()
 
-	handler := newHandler(store, session.Redis)
+	handler := newHandler(store, session.Redis, c)
 	srv := &http.Server{
 		Addr:         c.HostAddr,
 		WriteTimeout: time.Second * 15,

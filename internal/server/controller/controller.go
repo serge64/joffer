@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"guthub.com/serge64/joffer/internal/config"
 	"guthub.com/serge64/joffer/internal/storage"
 )
 
@@ -12,8 +13,11 @@ type Controller struct {
 	middleware *middleware
 	pages      *pages
 	auth       *auth
+	oauth      *oauth
+	api        *api
 	store      storage.Store
 	session    storage.Session
+	config     *config.Config
 }
 
 type errorResponse struct {
@@ -23,10 +27,11 @@ type errorResponse struct {
 	Path    string `json:"path"`
 }
 
-func New(store storage.Store, session storage.Session) *Controller {
+func New(store storage.Store, session storage.Session, config *config.Config) *Controller {
 	return &Controller{
 		store:   store,
 		session: session,
+		config:  config,
 	}
 }
 
@@ -55,6 +60,24 @@ func (c *Controller) Auth() *auth {
 		}
 	}
 	return c.auth
+}
+
+func (c *Controller) OAuth() *oauth {
+	if c.oauth == nil {
+		c.oauth = &oauth{
+			controller: c,
+		}
+	}
+	return c.oauth
+}
+
+func (c *Controller) API() *api {
+	if c.api == nil {
+		c.api = &api{
+			controller: c,
+		}
+	}
+	return c.api
 }
 
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, code int, err error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -51,15 +52,17 @@ func (m *middleware) LoggingHandler(next http.Handler) http.Handler {
 
 		next.ServeHTTP(rw, r)
 
-		format := fmt.Sprintln(r.Method, r.RequestURI, rw.code, time.Since(start))
+		if !strings.HasPrefix(r.RequestURI, "/public") {
+			format := fmt.Sprintln(r.Method, r.RequestURI, rw.code, time.Since(start))
 
-		switch {
-		case rw.code >= 500:
-			logrus.Error(format)
-		case rw.code >= 400:
-			logrus.Warn(format)
-		default:
-			logrus.Info(format)
+			switch {
+			case rw.code >= 500:
+				logrus.Error(format)
+			case rw.code >= 400:
+				logrus.Warn(format)
+			default:
+				logrus.Info(format)
+			}
 		}
 	})
 }

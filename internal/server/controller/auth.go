@@ -18,11 +18,6 @@ type request struct {
 	Password string `json:"password"`
 }
 
-type response struct {
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
-}
-
 var (
 	errInvalidEmailOrPassword = errors.New("некорректная электронная почта или пароль")
 	errInvalidEmail           = errors.New("некорректная электронная почта")
@@ -48,11 +43,7 @@ func (a *auth) SignIn() http.HandlerFunc {
 			return
 		}
 
-		res := &response{
-			Ok: true,
-		}
-
-		a.controller.respond(w, r, http.StatusOK, res)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 
@@ -81,11 +72,7 @@ func (a *auth) SignUp() http.HandlerFunc {
 			return
 		}
 
-		res := &response{
-			Ok: true,
-		}
-
-		a.controller.respond(w, r, http.StatusOK, res)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 
