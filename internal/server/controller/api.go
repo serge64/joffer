@@ -2,11 +2,13 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"guthub.com/serge64/joffer/internal/model"
 )
 
@@ -35,19 +37,88 @@ func (a *api) AddProfile() http.HandlerFunc {
 }
 
 func (a *api) Profile() http.HandlerFunc {
+	type profileResponse struct {
+		Name    string         `json:"name"`
+		Email   string         `json:"email"`
+		Resumes []string       `json:"resumes"`
+		Groups  []model.Group  `json:"groups"`
+		Letters []model.Letter `json:"letters"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		// u := r.Context().Value(ctxKeyUser).(*model.User)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+
+		profile, err := a.controller.store.Profile().Find(u.ID, 1)
+		if err != nil {
+			logrus.Error(err)
+			a.controller.respond(w, r, http.StatusOK, nil)
+			return
+		}
+
+		resumes, err := a.controller.store.Resume().Find(profile.ID)
+		if err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		letters, err := a.controller.store.Letter().Find(u.ID)
+		if err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		groups, err := a.controller.store.Group().Find(profile.ID)
+		if err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		toArray := func(m []model.Resume) []string {
+			array := []string{}
+			for _, v := range m {
+				array = append(array, v.Name)
+			}
+			return array
+		}
+
+		res := &profileResponse{
+			Name:    profile.Name,
+			Email:   profile.Email,
+			Resumes: toArray(resumes),
+			Letters: letters,
+			Groups:  groups,
+		}
+
+		a.controller.respond(w, r, http.StatusOK, res)
+	}
+}
+
+func (a *api) DeleteProfile() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+		err := a.controller.store.Profile().Delete(u.ID, 1)
+		if err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		a.controller.respond(w, r, http.StatusOK, nil)
 	}
 }
 
 func (a *api) CreateGroup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// u := r.Context().Value(ctxKeyUser).(*model.User)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
 		request := &group{}
 		json.NewDecoder(r.Body).Decode(request)
 
+		profile, err := a.controller.store.Profile().Find(u.ID, 1)
+		if err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
 		group := &model.Group{
-			UserID:    1, //u.ID,
+			ProfileID: profile.ID,
 			Name:      request.Name,
 			Resume:    request.Resume,
 			Letter:    request.Letter,
@@ -70,13 +141,19 @@ func (a *api) UpdateGroup() http.HandlerFunc {
 		iD := vars["id"]
 		id, _ := strconv.Atoi(iD)
 
-		// u := r.Context().Value(ctxKeyUser).(*model.User)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
 		request := &group{}
 		json.NewDecoder(r.Body).Decode(request)
 
+		profile, err := a.controller.store.Profile().Find(u.ID, 1)
+		if err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
 		group := &model.Group{
 			ID:        id,
-			UserID:    1, //,
+			ProfileID: profile.ID,
 			Name:      request.Name,
 			Resume:    request.Resume,
 			Letter:    request.Letter,
@@ -109,12 +186,12 @@ func (a *api) DeleteGroup() http.HandlerFunc {
 
 func (a *api) CreateLetter() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// u := r.Context().Value(ctxKeyUser).(*model.User)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
 		request := &letter{}
 		json.NewDecoder(r.Body).Decode(request)
 
 		letter := &model.Letter{
-			UserID: 1, //u.ID,
+			UserID: u.ID,
 			Name:   request.Name,
 			Body:   request.Body,
 		}
@@ -135,13 +212,13 @@ func (a *api) UpdateLetter() http.HandlerFunc {
 		iD := vars["id"]
 		id, _ := strconv.Atoi(iD)
 
-		// u := r.Context().Value(ctxKeyUser).(*model.User)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
 		request := &letter{}
 		json.NewDecoder(r.Body).Decode(request)
 
 		letter := &model.Letter{
 			ID:     id,
-			UserID: 1, //,
+			UserID: u.ID,
 			Name:   request.Name,
 			Body:   request.Body,
 		}
@@ -157,16 +234,73 @@ func (a *api) UpdateLetter() http.HandlerFunc {
 
 func (a *api) DeleteLetter() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// u := r.Context().Value(ctxKeyUser).(*model.User)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
 		vars := mux.Vars(r)
 		iD := vars["id"]
 		id, _ := strconv.Atoi(iD)
 
-		if err := a.controller.store.Letter().Delete(1, id); err != nil {
+		if err := a.controller.store.Letter().Delete(u.ID, id); err != nil {
 			a.controller.error(w, r, http.StatusInternalServerError, err)
 			return
 		}
 
 		a.controller.respond(w, r, http.StatusOK, nil)
+	}
+}
+
+func (a *api) Filters() http.HandlerFunc {
+	type filter struct {
+		Sites  []string `json:"sites"`
+		Groups []string `json:"groups"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+
+		profile, err := a.controller.store.Profile().Find(u.ID, 1)
+		if err != nil {
+			logrus.Error(err)
+			a.controller.error(w, r, http.StatusNotFound, errors.New("-"))
+			return
+		}
+
+		sites, err := a.controller.store.Platform().Find()
+		if err != nil {
+			logrus.Error(err)
+			sites = []string{}
+		}
+
+		groups, err := a.controller.store.Group().FindList(profile.ID)
+		if err != nil {
+			logrus.Error(err)
+			groups = []string{}
+		}
+
+		res := &filter{
+			Sites:  sites,
+			Groups: groups,
+		}
+
+		a.controller.respond(w, r, http.StatusOK, res)
+	}
+}
+
+func (a *api) Vacancies() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filter := &model.Filter{}
+		json.NewDecoder(r.Body).Decode(&filter)
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+
+		filter.UserID = u.ID
+		fmt.Println(filter.ToString())
+
+		vacancies, err := a.controller.store.Vacancy().Find(filter)
+		if err != nil {
+			logrus.Error(err)
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		a.controller.respond(w, r, http.StatusOK, vacancies)
 	}
 }

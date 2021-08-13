@@ -33,13 +33,18 @@ func (v *Vacancy) ConvertSalary() {
 	var salary []string
 
 	if v.SalaryFrom > 0 {
-		salary[0] = fmt.Sprintf("от %v", v.SalaryFrom)
-	}
-	if v.SalaryTo > 0 {
-		salary[1] = fmt.Sprintf("до %v", v.SalaryTo)
+		salary = append(salary, fmt.Sprintf("от %v", v.SalaryFrom))
 	}
 
-	v.Salary = strings.Join(salary, " ")
+	if v.SalaryTo > 0 {
+		salary = append(salary, fmt.Sprintf("до %v", v.SalaryTo))
+	}
+
+	if len(salary) == 0 {
+		v.Salary = "Не указана"
+	} else {
+		v.Salary = strings.Join(salary, " ")
+	}
 }
 
 func SearchVacancies(pattern string, taskID int) []Vacancy {

@@ -18,12 +18,19 @@ CREATE TABLE profiles (
     email varchar NOT NULL,
     access_token varchar NOT NULL,
     refresh_token varchar NOT NULL,
-    resumes varchar[]
+    expiry int NOT NULL
+);
+
+CREATE TABLE resumes (
+    id bigserial NOT NULL PRIMARY KEY,
+    profile_id int NOT NULL,
+    name varchar NOT NULL,
+    uid varchar NOT NULL
 );
 
 CREATE TABLE groups (
     id bigserial NOT NULL PRIMARY KEY,
-    user_id int NOT NULL,
+    profile_id int NOT NULL,
     name varchar NOT NULL,
     resume varchar NOT NULL,
     letter varchar NOT NULL
@@ -57,3 +64,5 @@ CREATE TABLE vacancies (
     responsed boolean NOT NULL,
     selected boolean NOT NULL
 );
+
+INSERT INTO platforms (name, full_name) VALUES ('hh', 'hh.ru');

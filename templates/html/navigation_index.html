@@ -1,0 +1,25 @@
+{{define "navigation_index"}}
+    <header>
+        <div class="navbar">
+            <input type="checkbox" id="hamburger">
+            <label for="hamburger" class="hamburger__button">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </label>
+            <a href="./" class="nav__logo">Joffer</a>
+            <ul class="nav__menu">
+                <li class="nav__item">
+                    <a href="./" class="nav__link nav__link--active">Вакансии</a>
+                </li>
+                <li class="nav__item">
+                    <a href="./profiles" class="nav__link">Профили</a>
+                </li>
+                <li class="nav__item" id="logout">
+                    <a href="" class="nav__link">Выход</a>
+                </li>
+            </ul>
+        </div>
+        <script src="../../public/js/logout.js"></script>
+    </header>
+{{end}}

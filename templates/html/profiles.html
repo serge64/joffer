@@ -1,0 +1,170 @@
+{{template "header"}}
+{{template "navigation_profiles"}}
+    <div class="content__wrapper">
+        <div class="flex">
+            <div class="profile">
+                <div class="profile__area">
+                    <section>
+                        <div class="content">
+                            <div class="logo hh"></div>
+                            <aside>
+                                <h1>HeadHunter</h1>
+                                <p>Добавьте профиль для дальнейшей работы</p>
+                            </aside>
+                            <button id="profile__button">
+                                <span>Добавить</span>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="title"><p><a href="https://hh.ru/applicant/resumes?from=header_new" target="_blank">Мои резюме</a></p></div>
+                    </section>
+                </div>
+            </div>
+            <div class="groups hidden">
+                <article id="add__card">
+                    <div class="field">
+                        <h2>Группа</h2>
+                        <div class="input__container">
+                            <input type="search" placeholder="Название">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <h2>Резюме</h2>
+                        <div class="select__container">
+                            <div class="select__input">
+                                <div class="select__trigger">
+                                    <span data-value="Выберите" class="placeholder">Выберите</span>
+                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <h2>Сопроводительное письмо</h2>
+                        <div class="select__container">
+                            <div class="select__input">
+                                <div class="select__trigger">
+                                    <span data-value="Выберите" class="placeholder">Выберите</span>
+                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <h2>Позиция</h2>
+                        <div class="input__container input__container--button">
+                            <input type="search" placeholder="Название">
+                            <button type="submit"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="action__container">
+                            <button class="delete__button"><i class="fas fa-trash-alt"></i></button>
+                            <button class="response__button">Отклик</button>
+                        </div>
+                    </div>
+                    <div class="add__container">
+                        <button class="add__button">
+                            <i class="fas fa-plus fa-3x"></i>
+                        </button>
+                    </div>
+                </article>
+            </div>
+            <template id="article__template">
+                <article data-index="">
+                    <div class="field">
+                        <h2>Группа</h2>
+                        <div class="input__container">
+                            <input type="text" placeholder="Название">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <h2>Резюме</h2>
+                        <div class="select__container resumes">
+                            <div class="select__input">
+                                <div class="select__trigger">
+                                    <span data-value="Выберите" class="placeholder">Выберите</span>
+                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                            <div class="dropdown__option">
+                                <ul class="option__list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <h2>Сопроводительное письмо</h2>
+                        <div class="select__container letters">
+                            <div class="select__input">
+                                <div class="select__trigger">
+                                    <span data-value="Выберите" class="placeholder">Выберите</span>
+                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                            <div class="dropdown__option">
+                                <ul class="option__list"></ul>
+                                <div class="letter__content">
+                                    <button class="new__letter">Добавить</button>
+                                </div>
+                                <div data-index="" class="letter__container hidden">
+                                    <div class="input__container">
+                                        <input type="text" class="letter__title" placeholder="Название">
+                                    </div>
+                                    <textarea placeholder="Сообщение"></textarea>
+                                    <div class="letter__action">
+                                        <button class="cancel__button">Отмена</button>
+                                        <button class="add__button">Добавить</button>
+                                        <button class="save__button hidden">Сохранить</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <h2>Позиция</h2>
+                        <div class="input__container input__container--button">
+                            <input type="text" placeholder="Название">
+                            <button type="submit"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <ul class="selected__list hidden"></ul>
+                    </div>
+                    <div class="field">
+                        <div class="action__container">
+                            <button class="delete__button"><i class="fas fa-trash-alt"></i></button>
+                            <button class="response__button disable">Отклик<span class="counter hidden">(0)</span></button>
+                        </div>
+                    </div>
+                    <div class="change hidden">
+                        <div class="change__question">
+                            <button>Сохранить изменения</button>
+                        </div>
+                    </div>
+                </article>
+            </template>
+            <template id="letter__template">
+                <li data-index="">
+                    <span></span>
+                    <div class="letter__action">
+                        <div class="edit__button">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <label class="remove__button">
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                        </label>
+                    </div>
+                </li>
+            </template>
+            <template id="selected__template">
+                <li>
+                    <span></span>
+                    <label class="remove__button">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </label>
+                </li>
+            </template>
+        </div>
+        <script src="../../public/js/profiles.js"></script>
+    </div>
+{{template "footer"}}

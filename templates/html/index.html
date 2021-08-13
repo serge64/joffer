@@ -1,0 +1,175 @@
+{{template "header"}}
+{{template "navigation_index"}}
+    <div class="content__wrapper">
+        <table class="vacancies">
+            <thead class="slidebar close">
+                <tr>
+                    <th class="dropdown" id="site">
+                        <div class="dropdown__item">
+                            <div class="dropdown__title">
+                                <i class="fas fa-globe"></i>
+                                <span>Сайт</span>
+                            </div>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="dropdown__menu hidden">
+                            <ul class="check__list"></ul>
+                            <div class="not__found__data hidden">
+                                <span>Нет данных</span>
+                            </div>
+                        </div>
+                    </th>
+                    <th class="dropdown" id="group">
+                        <div class="dropdown__item">
+                            <div class="dropdown__title">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Группа</span>
+                            </div>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="dropdown__menu hidden">
+                            <ul class="check__list"></ul>
+                            <div class="not__found__data hidden">
+                                <span>Нет данных</span>
+                            </div>
+                        </div>
+                    </th>
+                    <th class="dropdown" id="position">
+                        <div class="dropdown__item">
+                            <div class="dropdown__title">
+                                <i class="fas fa-crosshairs"></i>
+                                <span>Позиция</span>
+                            </div>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="dropdown__menu dropdown__menu--input hidden ">
+                            <div class="input__container input__container--button">
+                                <input type="search" placeholder="Поиск">
+                                <button type="submit"><i class="fa fa-search"></i></button>
+                            </div>
+                            <div class="search__container">
+                                <ul class="found__list hidden"></ul>
+                                <div class="not__found__data hidden">
+                                    <span>Нет данных</span>
+                                </div>
+                            </div>
+                            <ul class="selected__list"></ul>
+                        </div>
+                    </th>
+                    <th class="dropdown" id="salary">
+                        <div class="dropdown__item">
+                            <div class="dropdown__title">
+                                <i class="fas fa-coins"></i>
+                                <span>Зарплата</span>
+                            </div>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="dropdown__menu dropdown__menu--input hidden">
+                            <div class="input__container">
+                                <input type="search" placeholder="Минимум">
+                            </div>
+                        </div>
+                    </th>
+                    <th class="dropdown" id="company">
+                        <div class="dropdown__item">
+                            <div class="dropdown__title">
+                                <i class="fas fa-briefcase"></i>
+                                <span>Компания</span>
+                            </div>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="dropdown__menu dropdown__menu--input hidden">
+                            <div class="input__container input__container--button">
+                                <input type="search" placeholder="Поиск">
+                                <button type="submit"><i class="fa fa-search"></i></button>
+                            </div>
+                            <div class="search__container">
+                                <ul class="found__list hidden"></ul>
+                                <div class="not__found__data hidden">
+                                    <span>Нет данных</span>
+                                </div>
+                            </div>
+                            <ul class="selected__list"></ul>
+                        </div>
+                    </th>
+                    <th class="dropdown" id="area">
+                        <div class="dropdown__item">
+                            <div class="dropdown__title">
+                                <i class="fas fa-map-signs"></i>
+                                <span>Регион</span>
+                            </div>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="dropdown__menu dropdown__menu--input hidden">
+                            <div class="input__container input__container--button">
+                                <input type="search" placeholder="Поиск">
+                                <button type="submit"><i class="fa fa-search"></i></button>
+                            </div>
+                            <div class="search__container">
+                                <ul class="found__list hidden"></ul>
+                                <div class="not__found__data hidden">
+                                    <span>Нет данных</span>
+                                </div>
+                            </div>
+                            <ul class="selected__list"></ul>
+                        </div>
+                    </th>
+                    <th>Описание</th>
+                    <th>Дата<br/>публикации</th>
+                    <th>
+                        <div class="slidebar__button">
+                            <input type="checkbox" id="slidebar__toggle">
+                            <label for="slidebar__toggle">
+                                <span><i class="fas fa-angle-double-right"></i></span>
+                                <span><i class="fas fa-angle-double-left"></i></span>
+                            </label>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <template id="group__template">
+            <li>
+                <label class="checkbox">
+                    <input type="checkbox">
+                    <span></span>
+                </label>
+            </li>
+        </template>
+        <template id="label__template">
+            <li>
+                <span></span>
+                <label class="remove__button">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </label>
+            </li>
+        </template>
+        <template id="vacancy__template">
+            <tr data-index="">
+                <td><div class="logo"></div></td>
+                <td data-scope="Группа:"></td>
+                <td data-scope="Позиция:"><a href="" target="_blank"></a></td>
+                <td data-scope="Зарплата:"></td>
+                <td data-scope="Компания:"></td>
+                <td data-scope="Регион:"></td>
+                <td data-scope="Описание:"></td>
+                <td data-scope="Дата публикации:"></td>
+                <td>
+                    <div class="response">
+                        <div class="logo"></div>
+                        <div class="response__container">
+                            <button class="response__button">Отклик</button>
+                            <label class="checkbox">
+                                <input type="checkbox">
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </template>
+        <script src="../../public/js/index.js"></script>
+    </div>
+{{template "footer"}}

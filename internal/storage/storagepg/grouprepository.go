@@ -19,8 +19,8 @@ func (r *GroupRepository) Create(g *model.Group) (int, error) {
 	tx := r.store.db.MustBeginTx(ctx, nil)
 
 	if err := tx.QueryRow(
-		"INSERT INTO groups (user_id, name, resume, letter) VALUES ($1, $2, $3, $4) RETURNING id;",
-		g.UserID,
+		"INSERT INTO groups (profile_id, name, resume, letter) VALUES ($1, $2, $3, $4) RETURNING id;",
+		g.ProfileID,
 		g.Name,
 		g.Resume,
 		g.Letter,
@@ -46,18 +46,20 @@ func (r *GroupRepository) Create(g *model.Group) (int, error) {
 	return g.ID, nil
 }
 
-func (r *GroupRepository) Find(userID int) ([]model.Group, error) {
+func (r *GroupRepository) Find(profileID int) ([]model.Group, error) {
 	groups := []model.Group{}
 
 	if err := r.store.db.Select(
 		&groups,
-		"SELECT * FROM groups WHERE user_id = $1;",
-		userID,
+		"SELECT * FROM groups WHERE profile_id = $1;",
+		profileID,
 	); err != nil {
 		return nil, err
 	}
 
-	for _, v := range groups {
+	for i := 0; i < len(groups); i++ {
+		v := &groups[i]
+
 		tasks, err := r.store.Task().Find(v.ID)
 		if err != nil {
 			return nil, err
@@ -70,6 +72,20 @@ func (r *GroupRepository) Find(userID int) ([]model.Group, error) {
 
 		v.Positions = r.tasksToArray(tasks)
 		v.Count = count
+	}
+
+	return groups, nil
+}
+
+func (r *GroupRepository) FindList(profileID int) ([]string, error) {
+	groups := []string{}
+
+	if err := r.store.db.Select(
+		&groups,
+		"SELECT name FROM groups WHERE profile_id = $1;",
+		profileID,
+	); err != nil {
+		return nil, err
 	}
 
 	return groups, nil

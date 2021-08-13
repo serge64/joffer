@@ -43,7 +43,7 @@ func (h *handler) configureRouting() {
 	h.router.HandleFunc("/auth/signup", h.controller.Auth().SignUp()).Methods("POST")
 
 	auth := h.router.NewRoute().Subrouter()
-	// auth.Use(h.controller.Middleware().AuthenticateHandler)
+	auth.Use(h.controller.Middleware().AuthenticateHandler)
 
 	auth.HandleFunc("/auth/logout", h.controller.Auth().LogOut()).Methods("POST")
 	auth.HandleFunc("/", h.controller.Pages().Index())
@@ -55,6 +55,7 @@ func (h *handler) configureRouting() {
 	api := auth.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/profile", h.controller.API().AddProfile()).Methods("POST")
 	api.HandleFunc("/profile", h.controller.API().Profile()).Methods("GET")
+	api.HandleFunc("/profile", h.controller.API().DeleteProfile()).Methods("DELETE")
 
 	api.HandleFunc("/groups", h.controller.API().CreateGroup()).Methods("POST")
 	api.HandleFunc("/groups/{id:[0-9]+}", h.controller.API().UpdateGroup()).Methods("PATCH")
@@ -63,4 +64,7 @@ func (h *handler) configureRouting() {
 	api.HandleFunc("/letters", h.controller.API().CreateLetter()).Methods("POST")
 	api.HandleFunc("/letters/{id:[0-9]+}", h.controller.API().UpdateLetter()).Methods("PATCH")
 	api.HandleFunc("/letters/{id:[0-9]+}", h.controller.API().DeleteLetter()).Methods("DELETE")
+
+	api.HandleFunc("/vacancies", h.controller.API().Vacancies()).Methods("GET")
+	api.HandleFunc("/filters", h.controller.API().Filters()).Methods("GET")
 }

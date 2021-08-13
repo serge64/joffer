@@ -13,12 +13,15 @@ import (
 )
 
 type Store struct {
-	db                *sqlx.DB
-	userRepository    *UserRepository
-	letterRepository  *LetterRepository
-	groupRepository   *GroupRepository
-	vacancyRepository *VacancyRepository
-	taskRepository    *TaskRepository
+	db                 *sqlx.DB
+	profileRepository  *ProfileRepository
+	resumeRepository   *ResumeRepository
+	userRepository     *UserRepository
+	letterRepository   *LetterRepository
+	groupRepository    *GroupRepository
+	vacancyRepository  *VacancyRepository
+	taskRepository     *TaskRepository
+	platformRepository *PlatformRepository
 }
 
 func New(databaseURL string) (*Store, error) {
@@ -32,6 +35,28 @@ func New(databaseURL string) (*Store, error) {
 	}
 
 	return s, nil
+}
+
+func (s *Store) Profile() storage.ProfileRepository {
+	if s.profileRepository == nil {
+		s.profileRepository = &ProfileRepository{
+			store: s,
+			cron:  gocron.NewScheduler(time.UTC),
+			tasks: make(map[int]*gocron.Job),
+		}
+		s.profileRepository.cron.SetMaxConcurrentJobs(1, 1)
+		s.profileRepository.cron.StartAsync()
+	}
+	return s.profileRepository
+}
+
+func (s *Store) Resume() storage.ResumeRepository {
+	if s.resumeRepository == nil {
+		s.resumeRepository = &ResumeRepository{
+			store: s,
+		}
+	}
+	return s.resumeRepository
 }
 
 func (s *Store) User() storage.UserRepository {
@@ -82,6 +107,15 @@ func (s *Store) Task() storage.TaskRepository {
 		s.taskRepository.cron.StartAsync()
 	}
 	return s.taskRepository
+}
+
+func (s *Store) Platform() storage.PlatformRepository {
+	if s.platformRepository == nil {
+		s.platformRepository = &PlatformRepository{
+			store: s,
+		}
+	}
+	return s.platformRepository
 }
 
 func createCient(databaseURL string) (*sqlx.DB, error) {

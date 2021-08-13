@@ -57,12 +57,12 @@ func (r *VacancyRepository) upsert(ctx context.Context, tx *sqlx.Tx, v model.Vac
 	return nil
 }
 
-func (r *VacancyRepository) Find(userID int, filter *model.Filter) ([]model.Vacancy, error) {
+func (r *VacancyRepository) Find(filter *model.Filter) ([]model.Vacancy, error) {
 	vacancies := []model.Vacancy{}
 	selectQuery := "SELECT p.name AS site, id, g.name AS group_name, number, link, name, salary_from, salary_to, company, area, desription, at_published, selected"
 	joinQuery := "FROM vacancies INNER JOIN platforms p ON p.id = platform_id INNER JOIN tasks t ON t.id = task_id INNER JOIN groups g ON g.id = t.group_id"
 	query := fmt.Sprintf("%s %s %s ORDER BY at_published_at ASC LIMIT 20;", selectQuery, joinQuery, filter.ToString())
-
+	fmt.Println(query)
 	if err := r.store.db.Select(
 		&vacancies,
 		query,
