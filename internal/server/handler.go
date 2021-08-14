@@ -60,11 +60,15 @@ func (h *handler) configureRouting() {
 	api.HandleFunc("/groups", h.controller.API().CreateGroup()).Methods("POST")
 	api.HandleFunc("/groups/{id:[0-9]+}", h.controller.API().UpdateGroup()).Methods("PATCH")
 	api.HandleFunc("/groups/{id:[0-9]+}", h.controller.API().DeleteGroup()).Methods("DELETE")
+	api.HandleFunc("/groups/{id:[0-9]+}", h.controller.API().GroupResponse()).Methods("POST")
 
 	api.HandleFunc("/letters", h.controller.API().CreateLetter()).Methods("POST")
 	api.HandleFunc("/letters/{id:[0-9]+}", h.controller.API().UpdateLetter()).Methods("PATCH")
 	api.HandleFunc("/letters/{id:[0-9]+}", h.controller.API().DeleteLetter()).Methods("DELETE")
 
-	api.HandleFunc("/vacancies", h.controller.API().Vacancies()).Methods("GET")
+	api.HandleFunc("/vacancies", h.controller.API().Vacancies()).Methods("POST")
+	api.HandleFunc("/vacancies/{id:[0-9]+}", h.controller.API().Toggle()).Methods("PATCH")
+	api.HandleFunc("/vacancies/{id:[0-9]+}", h.controller.API().Response()).Methods("POST")
 	api.HandleFunc("/filters", h.controller.API().Filters()).Methods("GET")
+	api.HandleFunc("/search/{category}", h.controller.API().Search()).Queries("value", "{value}").Methods("GET")
 }

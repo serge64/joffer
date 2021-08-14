@@ -22,6 +22,7 @@ type Store struct {
 	vacancyRepository  *VacancyRepository
 	taskRepository     *TaskRepository
 	platformRepository *PlatformRepository
+	searchRepository   *SearchRepository
 }
 
 func New(databaseURL string) (*Store, error) {
@@ -116,6 +117,15 @@ func (s *Store) Platform() storage.PlatformRepository {
 		}
 	}
 	return s.platformRepository
+}
+
+func (s *Store) Search() storage.SearchRepository {
+	if s.searchRepository == nil {
+		s.searchRepository = &SearchRepository{
+			store: s,
+		}
+	}
+	return s.searchRepository
 }
 
 func createCient(databaseURL string) (*sqlx.DB, error) {

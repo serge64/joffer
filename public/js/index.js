@@ -7,9 +7,9 @@ const server = {
         });
         return await response.json();
     },
-    async rows(data = {}) {
+    async vacancies(data = {}) {
         const response = await fetch('/api/vacancies', {
-            method: 'GET',
+            method: 'POST',
             mode: 'cors',
             credentials: 'same-origin',
             header: {
@@ -19,15 +19,14 @@ const server = {
         });
         return await response.json();
     },
-    async search(id = '', data = {}) {
-        const response = await fetch(`/api/search/${id}`, {
+    async search(category = '', value = {}) {
+        const response = await fetch(`/api/search/${category}?${value.toString()}`, {
             method: 'GET',
             mode: 'cors',
             credentials: 'same-origin',
             header: {
                 'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: data
+            }
         });
         return await response.json();
     },
@@ -120,8 +119,8 @@ var oldFilter = {};
 function updateRows() {
     const filter = getFilter();
 
-    if (oldFilter.toString() != filter.toString()) {
-        server.rows(filter)
+    if (!isEqual(oldFilter, filter)) {
+        server.vacancies(filter)
             .then((data) => {
                 $(body).find('tr').remove();
                 data.forEach(appendRow);
@@ -145,7 +144,7 @@ function composeRow(data = {}) {
     const row = $(tmpl).clone(true);
     const cells = $(row).find('td');
 
-    $(row).find('tr').attr('data-index', data.vacancy_id);
+    $(row).find('tr').attr('data-index', data.id);
     $(row).find('.logo').addClass(data.site);
     cells[1].innerText = data.group;
     var link = $(cells[2]).find('a');
@@ -154,7 +153,7 @@ function composeRow(data = {}) {
     cells[3].innerText = data.salary;
     cells[4].innerText = data.company;
     cells[5].innerText = data.area;
-    cells[6].innerText = data.description;
+    cells[6].innerHTML = data.description;
     cells[7].innerText = data.at_published;
     $(cells[8]).find('input').attr('checked', data.selected);
 
@@ -178,6 +177,31 @@ function composeLabel(data = '') {
     var label = $(tmpl).clone(true);
     $(label).find('span').text(data);
     return label;
+};
+
+// Сравнение двух объектов.
+function isEqual(obj1 = {}, obj2 = {}) {
+    const obj1Keys = Object.keys(obj1);
+    const obj2Keys = Object.keys(obj2);
+
+    if(obj1Keys.length !== obj2Keys.length) {
+        return false;
+    }
+
+    for (let objKey of obj1Keys) {
+        if (obj1[objKey] !== obj2[objKey]) {
+            if(typeof obj1[objKey] == "object" && typeof obj2[objKey] == "object") {
+                if(!isEqual(obj1[objKey], obj2[objKey])) {
+                    return false;
+                }
+            } 
+            else {
+                return false;
+            }
+        }
+    }
+
+    return true;
 };
 
 // Добавляет элемент сайта в шапку таблицы.
@@ -298,11 +322,11 @@ async function fetchRows() {
     if (isLoading) return;
     isLoading = true;
 
-    const id = getId($(body).find('tr').last());
+    const date = $(body).find('tr').last().find('td:nth-last-child(2)').text().trim();
     var filter = getFilter();
-    filter.append('older_than', id);
+    filter.older_than = date;
 
-    const rows = await server.rows(filter);
+    const rows = await server.vacancies(filter);
     rows.forEach(appendRow);
 
     isLoading = false;
@@ -314,7 +338,7 @@ $(document).ready(function() {
     const interval = () => {
         if ($(body).is(':empty')) {
             const filter = getFilter();
-            server.rows(filter)
+            server.vacancies(filter)
                 .then((data) => {
                     data.forEach(appendRow);
                     return true;
@@ -340,7 +364,6 @@ $(document).ready(function() {
 
     server.filter()
         .then((data) => {
-            console.log(data)
             if (data.sites != null) {
                 if (data.sites.length > 0) {
                     data.sites.forEach(appendSite);
@@ -380,7 +403,7 @@ $(document).ready(function() {
 //             let filter = getFilter();
 //             filter.append('newer_than', id);
 
-//             server.rows(filter)
+//             server.vacancies(filter)
 //                 .then((data) => {
 //                     data.forEach(prependRow);
 //                 })
@@ -393,8 +416,7 @@ $(document).ready(function() {
 
 // `Click` вне фильтров.
 $(document).mouseup(function(e) {
-    const dropdown = $('.dropdown');
-    if (!$(dropdown).is(e.target) && $(dropdown).has(e.target).length === 0) {
+    if (!$('.dropdown').is(e.target) && $('.dropdown').has(e.target).length === 0) {
         $('.dropdown .dropdown__menu').each(function() {
             $(this).addClass('hidden');
             $(this).parent().removeClass('active');
@@ -477,10 +499,10 @@ $(document).ready(function() {
         const menu = $(this).parent().parent();
 
         if ($.trim(value).length > 0) {
-            let params = new URLSearchParams('value=' + value);
-
-            server.search(id, params)
+            const queries = new URLSearchParams({ value: value })
+            server.search(id, queries)
                 .then((data) => {
+                    
                     const list = $(menu).find('.found__list');
                     const notFound = $(menu).find('.not__found__data');
 
@@ -585,7 +607,8 @@ $(document).ready(function() {
         server.response(id)
             .then((response) => {
                 if (response.ok) {
-                    $(this).parent().parent().parent().remove();
+                    $(this).parent().parent().parent().parent().remove();
+                    alert("Отклик на вакансию отправлен.")
                 }
             })
             .catch((err) => {
@@ -597,14 +620,9 @@ $(document).ready(function() {
 // `Check` по чекбоксу с вакансией.
 $(document).ready(function() {
     $(table).on('click', '.response input', function(event) {
-        const id = getId(event.target, 6);
+        const id = getId(event.target, 5);
 
         server.toggle(id)
-            .then((response) => {
-                if (!response.ok) {
-                    console.log(response.status);
-                }
-            })
             .catch((err) => {
                 console.log(err);
             });

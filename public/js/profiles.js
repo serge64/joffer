@@ -38,7 +38,7 @@ const server = {
             },
             body: JSON.stringify(group)
         });
-        return await response;
+        return await response.json();
     },
     async saveGroup(id = '', group = {}) {
         return await fetch(`/api/groups/${id}`, {
@@ -761,8 +761,10 @@ $(document).ready(function() {
             if (id.startsWith('_')) {
                 server.sendGroup(body)
                     .then((data) => {
-                        groupsMap.delete(id)
-                        groupsMap.set(data, group)
+                        console.log(data)
+                        groupsMap.delete(id);
+                        groupsMap.set(data.id, group);
+                        $(article).attr('data-index', data.id);
                         slideDown(change);
                     })
                     .catch((err) => {

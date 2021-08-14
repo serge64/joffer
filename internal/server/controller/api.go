@@ -106,6 +106,10 @@ func (a *api) DeleteProfile() http.HandlerFunc {
 }
 
 func (a *api) CreateGroup() http.HandlerFunc {
+	type response struct {
+		ID string `json:"id"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		u := r.Context().Value(ctxKeyUser).(*model.User)
 		request := &group{}
@@ -131,7 +135,11 @@ func (a *api) CreateGroup() http.HandlerFunc {
 			return
 		}
 
-		a.controller.respond(w, r, http.StatusCreated, id)
+		res := &response{
+			ID: strconv.Itoa(id),
+		}
+
+		a.controller.respond(w, r, http.StatusCreated, res)
 	}
 }
 
@@ -179,6 +187,27 @@ func (a *api) DeleteGroup() http.HandlerFunc {
 			a.controller.error(w, r, http.StatusInternalServerError, err)
 			return
 		}
+
+		a.controller.respond(w, r, http.StatusOK, nil)
+	}
+}
+
+func (a *api) GroupResponse() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+		vars := mux.Vars(r)
+		iD := vars["id"]
+		id, _ := strconv.Atoi(iD)
+
+		if err := a.controller.store.Group().Response(u.ID, id); err != nil {
+			logrus.Error(err)
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"group_id": id,
+		}).Warnf("successful application for a vacancy by group")
 
 		a.controller.respond(w, r, http.StatusOK, nil)
 	}
@@ -292,7 +321,6 @@ func (a *api) Vacancies() http.HandlerFunc {
 		u := r.Context().Value(ctxKeyUser).(*model.User)
 
 		filter.UserID = u.ID
-		fmt.Println(filter.ToString())
 
 		vacancies, err := a.controller.store.Vacancy().Find(filter)
 		if err != nil {
@@ -302,5 +330,83 @@ func (a *api) Vacancies() http.HandlerFunc {
 		}
 
 		a.controller.respond(w, r, http.StatusOK, vacancies)
+	}
+}
+
+func (a *api) Toggle() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		iD := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(iD)
+
+		if err != nil {
+			a.controller.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		if err := a.controller.store.Vacancy().Toggle(id); err != nil {
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		a.controller.respond(w, r, http.StatusOK, nil)
+	}
+}
+
+func (a *api) Response() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+		iD := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(iD)
+		if err != nil {
+			a.controller.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		if err := a.controller.store.Vacancy().Response(u.ID, id); err != nil {
+			logrus.Error(err)
+			a.controller.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"vacancy_id": id,
+		}).Warnf("successful application for a vacancy")
+
+		a.controller.respond(w, r, http.StatusOK, nil)
+	}
+}
+
+func (a *api) Search() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := r.Context().Value(ctxKeyUser).(*model.User)
+		vars := mux.Vars(r)
+		value := vars["value"]
+
+		switch category := vars["category"]; category {
+		case "position":
+			found, err := a.controller.store.Search().Position(u.ID, value)
+			if err != nil {
+				logrus.Error(err)
+				a.controller.error(w, r, http.StatusInternalServerError, err)
+				return
+			}
+			a.controller.respond(w, r, http.StatusOK, found)
+		case "company":
+			found, err := a.controller.store.Search().Company(u.ID, value)
+			if err != nil {
+				logrus.Error(err)
+				a.controller.error(w, r, http.StatusInternalServerError, err)
+				return
+			}
+			a.controller.respond(w, r, http.StatusOK, found)
+		case "area":
+			found, err := a.controller.store.Search().Area(u.ID, value)
+			if err != nil {
+				logrus.Error(err)
+				a.controller.error(w, r, http.StatusInternalServerError, err)
+				return
+			}
+			a.controller.respond(w, r, http.StatusOK, found)
+		}
 	}
 }

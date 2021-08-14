@@ -1,7 +1,13 @@
 package storagepg
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -161,6 +167,98 @@ func (r *GroupRepository) Delete(id int) error {
 	}
 
 	tx.Commit()
+	return nil
+}
+
+func (r *GroupRepository) Response(userID int, id int) error {
+	var (
+		vacancyID   []string
+		resumeID    string
+		body        string
+		accessToken string
+		b           bytes.Buffer
+	)
+
+	if err := r.store.db.Select(
+		&vacancyID,
+		"SELECT number FROM vacancies v INNER JOIN tasks t ON t.id = v.task_id INNER JOIN groups g ON g.id = t.group_id WHERE v.selected = true AND t.group_id = $1;",
+		id,
+	); err != nil {
+		return err
+	}
+
+	if err := r.store.db.Get(
+		&resumeID,
+		"SELECT uid FROM resumes r INNER JOIN groups g ON g.resume = r.name WHERE g.id = $1;",
+		id,
+	); err != nil {
+		return err
+	}
+
+	if err := r.store.db.Get(
+		&body,
+		"SELECT body FROM letters l INNER JOIN groups g ON l.name = g.letter WHERE g.id = $1;",
+		id,
+	); err != nil {
+		return err
+	}
+
+	if err := r.store.db.Get(
+		&accessToken,
+		"SELECT access_token FROM profiles WHERE user_id = $1;",
+		userID,
+	); err != nil {
+		return err
+	}
+
+	for _, v := range vacancyID {
+		values := map[string]io.Reader{
+			"vacancy_id": strings.NewReader(v),
+			"resume_id":  strings.NewReader(resumeID),
+			"message":    strings.NewReader(body),
+		}
+
+		w := multipart.NewWriter(&b)
+		for key, r := range values {
+			var fw io.Writer
+			if x, ok := r.(io.Closer); ok {
+				defer x.Close()
+			}
+			fw, err := w.CreateFormField(key)
+			if err != nil {
+				return nil
+			}
+			if _, err := io.Copy(fw, r); err != nil {
+				return err
+			}
+		}
+		w.Close()
+
+		req, err := http.NewRequest("POST", "https://api.hh.ru/negotiations", &b)
+		if err != nil {
+			return err
+		}
+
+		req.Header.Add("Authorization", "Bearer "+accessToken)
+		req.Header.Set("Content-Type", w.FormDataContentType())
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+
+		if res.StatusCode != http.StatusCreated {
+			return fmt.Errorf("bad request: %s", res.Status)
+		}
+
+		if _, err = r.store.db.Exec(
+			"UPDATE vacancies SET responsed = true WHERE number = $1",
+			v,
+		); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

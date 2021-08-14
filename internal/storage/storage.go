@@ -9,4 +9,5 @@ type Store interface {
 	Vacancy() VacancyRepository
 	Task() TaskRepository
 	Platform() PlatformRepository
+	Search() SearchRepository
 }

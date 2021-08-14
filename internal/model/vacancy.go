@@ -13,6 +13,7 @@ import (
 
 type Vacancy struct {
 	ID          int     `json:"id" db:"id"`
+	Platform    string  `json:"site" db:"site"`
 	GroupName   string  `json:"group" db:"group_name"`
 	TaskID      int     `json:"-" db:"task_id"`
 	Number      string  `json:"vacancy_id" db:"number"`
@@ -41,7 +42,7 @@ func (v *Vacancy) ConvertSalary() {
 	}
 
 	if len(salary) == 0 {
-		v.Salary = "Не указана"
+		v.Salary = "Зарплата не указана"
 	} else {
 		v.Salary = strings.Join(salary, " ")
 	}

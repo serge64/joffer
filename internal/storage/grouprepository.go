@@ -8,4 +8,5 @@ type GroupRepository interface {
 	FindList(int) ([]string, error)
 	Update(*model.Group) error
 	Delete(int) error
+	Response(int, int) error
 }
