@@ -332,12 +332,8 @@ function differenceHandler(article = {}) {
         const data = getGroupData(article);
 
         if (groupsMap.get(id) != undefined) {
-            if (!isEqual(data, groupsMap.get(id))) {
-                if (valid(data)) {
-                    if ($(change).hasClass('close')) {
-                        slideUp(change);
-                    }
-                }
+            if (!isEqual(data, groupsMap.get(id)) && valid(data) && $(change).hasClass('close')) {
+                slideUp(change);
             } else {
                 slideDown(change);
             }
@@ -708,6 +704,7 @@ function valid(data = {}) {
     if (data.name.trim() === '') return false;
     if (data.resume.trim() === '' || data.resume === 'Выберите') return false;
     if (data.letter.trim() === '' || data.letter === 'Выберите') return false;
+    if (data.positions.length === 0) return false;
     return true;
 }
 
@@ -761,7 +758,6 @@ $(document).ready(function() {
             if (id.startsWith('_')) {
                 server.sendGroup(body)
                     .then((data) => {
-                        console.log(data)
                         groupsMap.delete(id);
                         groupsMap.set(data.id, group);
                         $(article).attr('data-index', data.id);

@@ -98,6 +98,7 @@ func (a *api) DeleteProfile() http.HandlerFunc {
 		u := r.Context().Value(ctxKeyUser).(*model.User)
 		err := a.controller.store.Profile().Delete(u.ID, 1)
 		if err != nil {
+			logrus.Error(err)
 			a.controller.error(w, r, http.StatusInternalServerError, err)
 			return
 		}

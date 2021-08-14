@@ -142,23 +142,15 @@ func (r *GroupRepository) Update(g *model.Group) error {
 }
 
 func (r *GroupRepository) Delete(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	tx := r.store.db.MustBeginTx(ctx, nil)
-
-	if _, err := tx.ExecContext(
-		ctx,
+	if _, err := r.store.db.Exec(
 		"DELETE FROM groups WHERE id = $1;",
 		id,
 	); err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	tasks, err := r.store.Task().Find(id)
 	if err != nil {
-		tx.Commit()
 		return err
 	}
 
@@ -166,7 +158,6 @@ func (r *GroupRepository) Delete(id int) error {
 		r.store.Task().Delete(id, v.Name)
 	}
 
-	tx.Commit()
 	return nil
 }
 

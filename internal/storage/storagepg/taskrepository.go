@@ -73,6 +73,13 @@ func (r *TaskRepository) Delete(groupID int, name string) error {
 	r.cron.RemoveByReference(j)
 	delete(r.tasks, id)
 
+	if _, err := r.store.db.Exec(
+		"DELETE FROM vacancies WHERE task_id = $1 AND responsed = false;",
+		id,
+	); err != nil {
+		return err
+	}
+
 	logrus.WithFields(logrus.Fields{
 		"task_id":   id,
 		"task_name": name,

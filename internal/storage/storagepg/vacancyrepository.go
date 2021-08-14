@@ -28,38 +28,30 @@ func (r *VacancyRepository) search(db *sqlx.DB, t *model.Task) {
 
 	logger.Warnf("task started")
 
-	vacancies := model.SearchVacancies(t.Name, t.GroupID)
+	vacancies := model.SearchVacancies(t.Name, t.ID)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	tx := db.MustBeginTx(ctx, nil)
 
 	for _, v := range vacancies {
-		if err := r.upsert(ctx, tx, v); err != nil {
+		if _, err := tx.NamedExecContext(
+			ctx,
+			"INSERT INTO vacancies (task_id, number, link, name, salary_from, salary_to, company, area, description, at_published, responsed, selected) VALUES (:task_id, :number, :link, :name, :salary_from, :salary_to, :company, :area, :description, :at_published, :responsed, :selected) ON CONFLICT(number) DO UPDATE SET at_published = :at_published, salary_from = :salary_from, salary_to = :salary_to WHERE vacancies.task_id = :task_id;",
+			&v,
+		); err != nil {
 			tx.Rollback()
 			logrus.Error(err)
 			return
 		}
 	}
 
-	logger.Warnf("task ended")
+	logger.Warnf("task ended: found vacancies %d", len(vacancies))
 
 	if err := tx.Commit(); err != nil {
 		logrus.Error(err)
 		return
 	}
-}
-
-func (r *VacancyRepository) upsert(ctx context.Context, tx *sqlx.Tx, v model.Vacancy) error {
-	if _, err := tx.NamedExecContext(
-		ctx,
-		"INSERT INTO vacancies (task_id, number, link, name, salary_from, salary_to, company, area, description, at_published, responsed, selected) VALUES (:task_id, :number, :link, :name, :salary_from, :salary_to, :company, :area, :description, :at_published, :responsed, :selected) ON CONFLICT (number) DO NOTHING;",
-		&v,
-	); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (r *VacancyRepository) Find(filter *model.Filter) ([]model.Vacancy, error) {

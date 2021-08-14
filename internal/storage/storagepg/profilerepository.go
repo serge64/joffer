@@ -102,12 +102,26 @@ func (r *ProfileRepository) Find(userID int, platformID int) (*model.Profile, er
 }
 
 func (r *ProfileRepository) Delete(userID int, platformID int) error {
+	ids := []int{}
+
+	if err := r.store.db.Select(
+		&ids,
+		"SELECT g.id FROM groups g INNER JOIN profiles p ON p.id = g.profile_id WHERE p.user_id = $1",
+		userID,
+	); err != nil {
+		return err
+	}
+
 	if _, err := r.store.db.Exec(
-		"DELETE FROM profiles WHERE user_id = $1 AND platform_id = $2",
+		"DELETE FROM profiles WHERE user_id = $1 AND platform_id = $2;",
 		userID,
 		platformID,
 	); err != nil {
 		return err
+	}
+
+	for _, v := range ids {
+		r.store.Group().Delete(v)
 	}
 
 	return nil
