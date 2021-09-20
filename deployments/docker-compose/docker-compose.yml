@@ -3,7 +3,8 @@ version: '3.8'
 services:
   postgres:
     build:
-      context: ./pg/
+      context: ../..
+      dockerfile: deployments/docker/postgres/Dockerfile
     container_name: database
     restart: always
     environment:
